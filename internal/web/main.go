@@ -5,17 +5,19 @@ import (
 	"fmt"
 	"html/template"
 	"io/fs"
-	"math/rand"
+	"log/slog"
 	"net/http"
 	"regexp"
-	"strconv"
 	"strings"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/gin-gonic/gin"
+	"github.com/lcrownover/duckpaste/internal/db"
 )
 
 const (
-	defaultLifetime int = 48
+	defaultLifetime int    = 48
+	containerName   string = "duckpaste"
 )
 
 //go:embed templates
@@ -29,8 +31,17 @@ type PasteEntry struct {
 }
 
 var pastesDummy []PasteEntry
+var dbClient *azcosmos.Client
 
 func StartServer() {
+	dbConfig, err := db.GetConfig()
+	if err != nil {
+		slog.Error(err.Error())
+	}
+	dbClient, err = db.GetCostmosClient(dbConfig)
+	if err != nil {
+		slog.Error(err.Error())
+	}
 	server := gin.Default()
 	pattern := "templates/*html"
 	LoadHTMLFromEmbedFS(server, templatesFS, pattern)
@@ -94,11 +105,13 @@ func createPasteEntry(content string, lifetimeHours int, deleteOnRead bool) (Pas
 	}
 
 	// generate unique key
-	uniqueKey := rand.Int()
-
-	newEntry.Id = strconv.FormatInt(int64(uniqueKey), 10)
+	newEntry.Id = string(db.GetRandomID())
 
 	// put it in the database
+	err := db.CreateItem(dbClient, containerName, containerName, db.ItemID(newEntry.Id), &db.Item{})
+	if err != nil {
+		return newEntry, err
+	}
 	pastesDummy = append(pastesDummy, newEntry)
 
 	// put the key in newEntry
