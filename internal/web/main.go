@@ -30,6 +30,26 @@ type PasteEntry struct {
 	DeleteOnRead  bool   `json:"deleteOnRead" form:"deleteOnRead"`
 }
 
+func (p *PasteEntry) toDbItem() db.Item {
+	return db.Item{
+		Id:            db.ItemID(p.Id),
+		LifetimeHours: p.LifetimeHours,
+		Content:       db.ItemContent(p.Content),
+		DeleteOnRead:  p.DeleteOnRead,
+		Created:       db.GetCurrentTime(),
+	}
+
+}
+
+func (p PasteEntry) fromDbItem(item db.Item) PasteEntry {
+	return PasteEntry{
+		Id:            string(item.Id),
+		LifetimeHours: item.LifetimeHours,
+		Content:       string(item.Content),
+		DeleteOnRead:  item.DeleteOnRead,
+	}
+}
+
 var pastesDummy []PasteEntry
 var dbClient *azcosmos.Client
 
@@ -90,6 +110,8 @@ func getPasteEntry(id string) (PasteEntry, error) {
 		}
 	}
 
+	// pasteEntry, err := db.ReadItem()
+
 	return PasteEntry{}, fmt.Errorf("paste not found")
 }
 
@@ -107,14 +129,14 @@ func createPasteEntry(content string, lifetimeHours int, deleteOnRead bool) (Pas
 	// generate unique key
 	newEntry.Id = string(db.GetRandomID())
 
+	//convert
+	newDbItem := newEntry.toDbItem()
+
 	// put it in the database
-	err := db.CreateItem(dbClient, containerName, containerName, db.ItemID(newEntry.Id), &db.Item{})
+	err := db.CreateItem(dbClient, containerName, containerName, db.ItemID(newEntry.Id), &newDbItem)
 	if err != nil {
 		return newEntry, err
 	}
-	pastesDummy = append(pastesDummy, newEntry)
-
-	// put the key in newEntry
 
 	return newEntry, nil
 }
