@@ -10,7 +10,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 	"github.com/gin-gonic/gin"
 	"github.com/lcrownover/duckpaste/internal/db"
 )
@@ -41,7 +40,7 @@ func (p *PasteEntry) toDbItem() db.Item {
 
 }
 
-func (p PasteEntry) fromDbItem(item db.Item) PasteEntry {
+func NewPasteEntryFromDbItem(item db.Item) PasteEntry {
 	return PasteEntry{
 		Id:            string(item.Id),
 		LifetimeHours: item.LifetimeHours,
@@ -51,14 +50,18 @@ func (p PasteEntry) fromDbItem(item db.Item) PasteEntry {
 }
 
 var pastesDummy []PasteEntry
-var dbClient *azcosmos.Client
+var dbClient *db.CosmosHandler
 
 func StartServer() {
 	dbConfig, err := db.GetConfig()
 	if err != nil {
 		slog.Error(err.Error())
 	}
-	dbClient, err = db.GetCostmosClient(dbConfig)
+	dbClient, err = db.NewCosmosHandler(dbConfig)
+	if err != nil {
+		slog.Error(err.Error())
+	}
+	err = dbClient.Init()
 	if err != nil {
 		slog.Error(err.Error())
 	}
@@ -104,15 +107,12 @@ func LoadAndAddToRoot(funcMap template.FuncMap, rootTemplate *template.Template,
 
 func getPasteEntry(id string) (PasteEntry, error) {
 	// get it
-	for _, paste := range pastesDummy {
-		if paste.Id == id {
-			return paste, nil
-		}
+	pasteEntry, err := dbClient.ReadItem(db.ItemID(id))
+	if err != nil {
+		return PasteEntry{}, fmt.Errorf("paste not found")
 	}
 
-	// pasteEntry, err := db.ReadItem()
-
-	return PasteEntry{}, fmt.Errorf("paste not found")
+	return NewPasteEntryFromDbItem(*pasteEntry), nil
 }
 
 func createPasteEntry(content string, lifetimeHours int, deleteOnRead bool) (PasteEntry, error) {
@@ -133,7 +133,7 @@ func createPasteEntry(content string, lifetimeHours int, deleteOnRead bool) (Pas
 	newDbItem := newEntry.toDbItem()
 
 	// put it in the database
-	err := db.CreateItem(dbClient, containerName, containerName, db.ItemID(newEntry.Id), &newDbItem)
+	err := dbClient.CreateItem(db.ItemID(newEntry.Id), &newDbItem)
 	if err != nil {
 		return newEntry, err
 	}
