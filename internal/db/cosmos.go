@@ -134,7 +134,7 @@ func CreateItem(client *azcosmos.Client, databaseName string, containerName stri
 	}
 
 	// Specifies the value of the partiton key
-	pk := azcosmos.NewPartitionKeyString(string(itemID))
+	pk := azcosmos.NewPartitionKeyString("/id")
 
 	b, err := json.Marshal(item)
 	if err != nil {
@@ -163,7 +163,7 @@ func ReadItem(client *azcosmos.Client, databaseName string, containerName string
 	}
 
 	// Specifies the value of the partiton key
-	pk := azcosmos.NewPartitionKeyString(string(itemID))
+	pk := azcosmos.NewPartitionKeyString("/id")
 
 	ctx := context.TODO()
 	itemResponse, err := containerClient.ReadItem(ctx, pk, string(itemID), nil)
@@ -188,7 +188,7 @@ func DeleteItem(client *azcosmos.Client, databaseName string, containerName stri
 	}
 
 	// Specifies the value of the partiton key
-	pk := azcosmos.NewPartitionKeyString(string(itemID))
+	pk := azcosmos.NewPartitionKeyString("/id")
 
 	ctx := context.TODO()
 	itemResponse, err := containerClient.DeleteItem(ctx, pk, string(itemID), nil)
@@ -199,3 +199,19 @@ func DeleteItem(client *azcosmos.Client, databaseName string, containerName stri
 
 	return nil
 }
+
+// func GetAllItems() {
+// 	pk := azcosmos.NewPartitionKeyString("myPartitionKeyValue")
+// 	queryPager := container.NewQueryItemsPager("select * from docs c", pk, nil)
+// 	for queryPager.More() {
+// 		queryResponse, err := queryPager.NextPage(context)
+// 		if err != nil {
+// 			handle(err)
+// 		}
+
+// 		for _, item := range queryResponse.Items {
+// 			var itemResponseBody map[string]interface{}
+// 			json.Unmarshal(item, &itemResponseBody)
+// 		}
+// 	}
+// }
