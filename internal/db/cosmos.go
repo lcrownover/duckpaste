@@ -13,6 +13,52 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 )
 
+type CosmosHandler struct {
+	// Cosmos Client
+	Client *azcosmos.Client
+	// Cosmos database client
+	DatabaseClient *azcosmos.DatabaseClient
+	// Cosmos container client
+	ContainerClient *azcosmos.ContainerClient
+	// Data
+	DatabaseName  string
+	ContainerName string
+	PartitionKey  string
+}
+
+func NewCosmosHandler(cfg *CosmosConfig) (*CosmosHandler, error) {
+	slog.Debug("creating cosmos handler")
+	client, err := GetCostmosClient(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create cosmos client: %v", err)
+	}
+
+	return &CosmosHandler{
+		Client:          client,
+		DatabaseClient:  nil,
+		ContainerClient: nil,
+		DatabaseName:    cfg.DatabaseName,
+		ContainerName:   cfg.ContainerName,
+		PartitionKey:    cfg.PartitionKeyPath,
+	}, nil
+}
+
+func (h *CosmosHandler) Init() error {
+	databaseClient, err := CreateDatabase(h.Client, h.DatabaseName)
+	if err != nil {
+		return fmt.Errorf("failed to create database client: %v", err)
+	}
+	h.DatabaseClient = databaseClient
+
+	containerClient, err := CreateContainer(h.Client, h.DatabaseName, h.ContainerName, h.PartitionKey)
+	if err != nil {
+		return fmt.Errorf("failed to create container: %v", err)
+	}
+	h.ContainerClient = containerClient
+
+	return nil
+}
+
 type Item struct {
 	Id            ItemID      `json:"id"`
 	LifetimeHours int         `json:"lifetimeHours"`
@@ -62,12 +108,12 @@ func CreateDatabase(client *azcosmos.Client, databaseName string) (*azcosmos.Dat
 	return databaseClient, nil
 }
 
-func CreateContainer(client *azcosmos.Client, databaseName, containerName, partitionKey string) error {
+func CreateContainer(client *azcosmos.Client, databaseName, containerName, partitionKey string) (*azcosmos.ContainerClient, error) {
 	slog.Debug("creating container")
 
 	databaseClient, err := client.NewDatabase(databaseName)
 	if err != nil {
-		return fmt.Errorf("failed to create database client: %v", err)
+		return nil, fmt.Errorf("failed to create database client: %v", err)
 	}
 
 	// Setting container properties
@@ -90,10 +136,15 @@ func CreateContainer(client *azcosmos.Client, databaseName, containerName, parti
 		}
 	}
 	if err != nil {
-		return fmt.Errorf("failed to create container: %v", err)
+		return nil, fmt.Errorf("failed to create container: %v", err)
 	}
 
-	return nil
+	containerClient, err := databaseClient.NewContainer(containerName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create container client: %v", err)
+	}
+
+	return containerClient, nil
 }
 
 type ItemID string
@@ -126,15 +177,15 @@ func DecodeContent(content ItemContent) (string, error) {
 	return string(decodedContent), nil
 }
 
-func CreateItem(client *azcosmos.Client, databaseName string, containerName string, itemID ItemID, item *Item) error {
+func (h *CosmosHandler) CreateItem(itemID ItemID, item *Item) error {
 	slog.Debug("creating item")
-	containerClient, err := client.NewContainer(databaseName, containerName)
+	containerClient, err := h.Client.NewContainer(h.DatabaseName, h.ContainerName)
 	if err != nil {
 		return fmt.Errorf("failed to create a container client: %s", err)
 	}
 
 	// Specifies the value of the partiton key
-	pk := azcosmos.NewPartitionKeyString("/id")
+	pk := azcosmos.NewPartitionKeyString(string(itemID))
 
 	b, err := json.Marshal(item)
 	if err != nil {
@@ -155,15 +206,15 @@ func CreateItem(client *azcosmos.Client, databaseName string, containerName stri
 	return nil
 }
 
-func ReadItem(client *azcosmos.Client, databaseName string, containerName string, itemID ItemID) (*Item, error) {
+func (h *CosmosHandler) ReadItem(itemID ItemID) (*Item, error) {
 	slog.Debug("creating item")
-	containerClient, err := client.NewContainer(databaseName, containerName)
+	containerClient, err := h.Client.NewContainer(h.DatabaseName, h.ContainerName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a container client: %s", err)
 	}
 
 	// Specifies the value of the partiton key
-	pk := azcosmos.NewPartitionKeyString("/id")
+	pk := azcosmos.NewPartitionKeyString(string(itemID))
 
 	ctx := context.TODO()
 	itemResponse, err := containerClient.ReadItem(ctx, pk, string(itemID), nil)
@@ -180,15 +231,15 @@ func ReadItem(client *azcosmos.Client, databaseName string, containerName string
 	return &item, nil
 }
 
-func DeleteItem(client *azcosmos.Client, databaseName string, containerName string, itemID ItemID) error {
+func (h *CosmosHandler) DeleteItem(itemID ItemID) error {
 	slog.Debug("deleting item")
-	containerClient, err := client.NewContainer(databaseName, containerName)
+	containerClient, err := h.Client.NewContainer(h.DatabaseName, h.ContainerName)
 	if err != nil {
 		return fmt.Errorf("failed to create a container client: %s", err)
 	}
 
 	// Specifies the value of the partiton key
-	pk := azcosmos.NewPartitionKeyString("/id")
+	pk := azcosmos.NewPartitionKeyString(string(itemID))
 
 	ctx := context.TODO()
 	itemResponse, err := containerClient.DeleteItem(ctx, pk, string(itemID), nil)
@@ -200,8 +251,9 @@ func DeleteItem(client *azcosmos.Client, databaseName string, containerName stri
 	return nil
 }
 
-// func GetAllItems() {
-// 	pk := azcosmos.NewPartitionKeyString("myPartitionKeyValue")
+// func GetAllItems(databaseName, containerName string) {
+// 	pk := azcosmos.NewPartitionKeyString("/id")
+// 	containerClient, err := CreateContainer(databaseName, containerName)
 // 	queryPager := container.NewQueryItemsPager("select * from docs c", pk, nil)
 // 	for queryPager.More() {
 // 		queryResponse, err := queryPager.NextPage(context)

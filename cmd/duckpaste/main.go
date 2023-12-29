@@ -32,24 +32,13 @@ func main() {
 		slog.Error("Failed to get Cosmos Config", "error", err)
 		os.Exit(1)
 	}
-	client, err := db.GetCostmosClient(cosmosConfig)
-	if err != nil {
-		slog.Error("Failed to create Azure Cosmos DB client", "error", err)
-	}
 
-	// Create the database
-	_, err = db.CreateDatabase(client, "duckpaste")
+	cosmosHandler, err := db.NewCosmosHandler(cosmosConfig)
 	if err != nil {
-		slog.Error("Failed to create database", "error", err)
+		slog.Error("Failed to create Cosmos Handler", "error", err)
 		os.Exit(1)
 	}
-
-	// Create the container
-	err = db.CreateContainer(client, "duckpaste", "duckpaste", "/id")
-	if err != nil {
-		slog.Error("Failed to create container", "error", err)
-		os.Exit(1)
-	}
+	cosmosHandler.Init()
 
 	// Test payload
 	itemId := db.GetRandomID()
@@ -63,14 +52,14 @@ func main() {
 	}
 
 	// Try to create an item
-	err = db.CreateItem(client, "duckpaste", "duckpaste", item.Id, item)
+	err = cosmosHandler.CreateItem(item.Id, item)
 	if err != nil {
 		slog.Error("Failed to create item", "error", err)
 		os.Exit(1)
 	}
 
 	// Try to read an item
-	item, err = db.ReadItem(client, "duckpaste", "duckpaste", item.Id)
+	item, err = cosmosHandler.ReadItem(item.Id)
 	if err != nil {
 		slog.Error("Failed to read item", "error", err)
 		os.Exit(1)
@@ -78,7 +67,7 @@ func main() {
 	fmt.Printf("Item: %+v\n", item)
 
 	// Try to delete an item
-	err = db.DeleteItem(client, "duckpaste", "duckpaste", item.Id)
+	err = cosmosHandler.DeleteItem(item.Id)
 	if err != nil {
 		slog.Error("Failed to delete item", "error", err)
 		os.Exit(1)
