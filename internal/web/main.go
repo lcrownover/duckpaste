@@ -1,9 +1,13 @@
 package web
 
 import (
+	"embed"
 	"fmt"
+	"html/template"
+	"io/fs"
 	"math/rand"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -13,6 +17,9 @@ import (
 const (
 	defaultLifetime int = 48
 )
+
+//go:embed templates
+var templatesFS embed.FS
 
 type PasteEntry struct {
 	Id            string `json:"id" form:"id"`
@@ -25,10 +32,43 @@ var pastesDummy []PasteEntry
 
 func StartServer() {
 	server := gin.Default()
+	pattern := "templates/*html"
+	LoadHTMLFromEmbedFS(server, templatesFS, pattern)
 	server.GET("/api/paste", getPasteApi)
 	server.POST("/api/paste", createPasteApi)
+	server.GET("/paste", pasteFrontEnd)
 	server.Run()
 
+}
+
+func LoadHTMLFromEmbedFS(engine *gin.Engine, embedFS embed.FS, pattern string) {
+	root := template.New("")
+	tmpl := template.Must(root, LoadAndAddToRoot(engine.FuncMap, root, embedFS, pattern))
+	engine.SetHTMLTemplate(tmpl)
+}
+
+func LoadAndAddToRoot(funcMap template.FuncMap, rootTemplate *template.Template, embedFS embed.FS, pattern string) error {
+	pattern = strings.ReplaceAll(pattern, ".", "\\.")
+	pattern = strings.ReplaceAll(pattern, "*", ".*")
+
+	err := fs.WalkDir(embedFS, ".", func(path string, d fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+
+		if matched, _ := regexp.MatchString(pattern, path); !d.IsDir() && matched {
+			data, readErr := embedFS.ReadFile(path)
+			if readErr != nil {
+				return readErr
+			}
+			t := rootTemplate.New(path).Funcs(funcMap)
+			if _, parseErr := t.Parse(string(data)); parseErr != nil {
+				return parseErr
+			}
+		}
+		return nil
+	})
+	return err
 }
 
 func getPasteEntry(id string) (PasteEntry, error) {
@@ -121,4 +161,8 @@ func getPasteApi(c *gin.Context) {
 
 	c.JSON(http.StatusOK, paste)
 
+}
+
+func pasteFrontEnd(c *gin.Context) {
+	c.HTML(http.StatusOK, "templates/paste.html", nil)
 }
