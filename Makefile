@@ -1,20 +1,17 @@
-.PHONY: build install clean run container handler
+.PHONY: build install clean run container 
 
 build:
-	@go build -o bin/github.com/lcrownover/duckpaste cmd/github.com/lcrownover/duckpaste/main.go
+	@go build -o bin/duckpaste cmd/duckpaste/main.go
 
 run: build
-	@go run cmd/github.com/lcrownover/duckpaste/main.go
+	@go run cmd/duckpaste/main.go
 
-install: build
-	@cp bin/github.com/lcrownover/duckpaste /usr/local/bin/github.com/lcrownover/duckpaste
+install: 
+	@cp bin/duckpaste /usr/local/bin/duckpaste
 
 container:
-	@docker build -t github.com/lcrownover/duckpaste .
-
-handler:
-	@go build -o handler cmd/github.com/lcrownover/duckpaste/main.go
+	@docker build -t duckpaste .
 
 clean:
-	@rm -f bin/github.com/lcrownover/duckpaste /usr/local/bin/github.com/lcrownover/duckpaste
+	@rm -f bin/duckpaste /usr/local/bin/duckpaste
 
