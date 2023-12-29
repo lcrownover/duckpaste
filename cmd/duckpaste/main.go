@@ -59,6 +59,7 @@ func main() {
 		LifetimeHours: 24,
 		Content:       db.EncodeContent(content),
 		DeleteOnRead:  false,
+		Created:       db.GetCurrentTime(),
 	}
 
 	// Try to create an item

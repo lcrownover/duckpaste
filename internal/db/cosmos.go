@@ -7,10 +7,19 @@ import (
 	"fmt"
 	"log/slog"
 	"math/rand"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 )
+
+type Item struct {
+	Id            ItemID      `json:"id"`
+	LifetimeHours int         `json:"lifetimeHours"`
+	Content       ItemContent `json:"content"`
+	DeleteOnRead  bool        `json:"deleteOnRead"`
+	Created       time.Time   `json:"created"`
+}
 
 func GetCostmosClient(cfg *CosmosConfig) (*azcosmos.Client, error) {
 	slog.Debug("getting cosmos client")
@@ -101,19 +110,20 @@ func EncodeContent(content string) ItemContent {
 	return ItemContent(encodedContent)
 }
 
+func GetCurrentTime() time.Time {
+	return time.Now().UTC()
+}
+
+func ParseTime(t string) (time.Time, error) {
+	return time.Parse(time.RFC3339, t)
+}
+
 func DecodeContent(content ItemContent) (string, error) {
 	decodedContent, err := base64.StdEncoding.DecodeString(string(content))
 	if err != nil {
 		return "", fmt.Errorf("failed to decode content: %v", err)
 	}
 	return string(decodedContent), nil
-}
-
-type Item struct {
-	Id            ItemID      `json:"id"`
-	LifetimeHours int         `json:"lifetimeHours"`
-	Content       ItemContent `json:"content"`
-	DeleteOnRead  bool        `json:"deleteOnRead"`
 }
 
 func CreateItem(client *azcosmos.Client, databaseName string, containerName string, itemID ItemID, item *Item) error {
