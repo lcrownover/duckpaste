@@ -61,10 +61,22 @@ func (h *CosmosHandler) Init() error {
 
 type Item struct {
 	Id            ItemID      `json:"id"`
+	Partitionkey  string      `json:"partitionKey"`
 	LifetimeHours int         `json:"lifetimeHours"`
 	Content       ItemContent `json:"content"`
 	DeleteOnRead  bool        `json:"deleteOnRead"`
 	Created       time.Time   `json:"created"`
+}
+
+func (h *CosmosHandler) NewItem(content string, lifetimeHours int, deleteOnRead bool) *Item {
+	return &Item{
+		Id:            GetRandomID(),
+		Partitionkey:  h.PartitionKey,
+		LifetimeHours: lifetimeHours,
+		Content:       EncodeContent(content),
+		DeleteOnRead:  deleteOnRead,
+		Created:       GetCurrentTime(),
+	}
 }
 
 func GetCostmosClient(cfg *CosmosConfig) (*azcosmos.Client, error) {
