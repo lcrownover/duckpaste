@@ -1,7 +1,6 @@
 package db
 
 import (
-	"fmt"
 	"log/slog"
 	"time"
 )
@@ -34,7 +33,16 @@ func StartCleaner(h *CosmosHandler, opts *CleanerOpts) {
 		}
 		for _, item := range allItems {
 			// Check if item is expired
-			fmt.Println(item)
+			// itemCreatedTime, err := ParseTime(item.Created)
+			if err != nil {
+				slog.Error("Failed to parse item time", "error", err)
+				goto sleep
+			}
+			itemExpirationTime := item.Created.Add(time.Duration(item.LifetimeHours) * time.Hour)
+			if time.Now().After(itemExpirationTime) {
+				slog.Debug("deleting expired item", "id", item.Id)
+				h.DeleteItem(item.Id)
+			}
 		}
 	sleep:
 		slog.Info("Cleaner sleeping", "duration", opts.Interval)

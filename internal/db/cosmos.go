@@ -61,7 +61,7 @@ func (h *CosmosHandler) Init() error {
 
 type Item struct {
 	Id            ItemID      `json:"id"`
-	Partition     string      `json:"partitionKey"`
+	Partition     string      `json:"partition"`
 	LifetimeHours int         `json:"lifetimeHours"`
 	Content       ItemContent `json:"content"`
 	DeleteOnRead  bool        `json:"deleteOnRead"`
@@ -203,11 +203,12 @@ func (h *CosmosHandler) CreateItem(itemID ItemID, item *Item) error {
 	if err != nil {
 		return err
 	}
+
 	// setting item options upon creating ie. consistency level
 	itemOptions := azcosmos.ItemOptions{
 		ConsistencyLevel: azcosmos.ConsistencyLevelSession.ToPtr(),
 	}
-	ctx := context.TODO()
+	ctx := context.Background()
 	itemResponse, err := containerClient.CreateItem(ctx, pk, b, &itemOptions)
 
 	if err != nil {
@@ -219,7 +220,7 @@ func (h *CosmosHandler) CreateItem(itemID ItemID, item *Item) error {
 }
 
 func (h *CosmosHandler) ReadItem(itemID ItemID) (*Item, error) {
-	slog.Debug("creating item")
+	slog.Debug("reading item")
 	containerClient, err := h.Client.NewContainer(h.DatabaseName, h.ContainerName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a container client: %s", err)
@@ -269,19 +270,29 @@ func (h *CosmosHandler) GetAllItems() ([]Item, error) {
 	queryPager := h.ContainerClient.NewQueryItemsPager("SELECT * FROM docs c", pk, nil)
 	allItems := []Item{}
 	for queryPager.More() {
-		slog.Debug("found items")
 		queryResponse, err := queryPager.NextPage(context.Background())
 		if err != nil {
 			return nil, fmt.Errorf("failed to get next page: %v", err)
 		}
-		fmt.Printf("%+v\n", queryResponse)
 		for _, respItem := range queryResponse.Items {
 			var item Item
 			err := json.Unmarshal(respItem, &item)
 			if err != nil {
-				return nil, fmt.Errorf("failed to unmarshal item: %v", err)
+				// if we can't unmarshal the item, it's corrupt
+				// get the id and delete it
+				var idStruct struct {
+					Id string `json:"id"`
+				}
+				err = json.Unmarshal(respItem, &idStruct)
+				if err != nil {
+					slog.Error("failed to unmarshal corrupt item: %v", err)
+				} else {
+					// delete the corrupt item
+					slog.Debug("deleting corrupt item", "id", idStruct.Id)
+					h.DeleteItem(ItemID(idStruct.Id))
+				}
+
 			}
-			slog.Debug("got item", "id", item.Id)
 			allItems = append(allItems, item)
 		}
 	}

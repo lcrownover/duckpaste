@@ -41,15 +41,8 @@ func main() {
 	cosmosHandler.Init()
 
 	// Test payload
-	itemId := db.GetRandomID()
 	content := "pretend-im-a-paste"
-	item := &db.Item{
-		Id:            itemId,
-		LifetimeHours: 24,
-		Content:       db.EncodeContent(content),
-		DeleteOnRead:  false,
-		Created:       db.GetCurrentTime(),
-	}
+	item := cosmosHandler.NewItem(content, 24, false)
 
 	// Try to create an item
 	err = cosmosHandler.CreateItem(item.Id, item)
