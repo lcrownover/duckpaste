@@ -251,19 +251,27 @@ func (h *CosmosHandler) DeleteItem(itemID ItemID) error {
 	return nil
 }
 
-// func GetAllItems(databaseName, containerName string) {
-// 	pk := azcosmos.NewPartitionKeyString("/id")
-// 	containerClient, err := CreateContainer(databaseName, containerName)
-// 	queryPager := container.NewQueryItemsPager("select * from docs c", pk, nil)
-// 	for queryPager.More() {
-// 		queryResponse, err := queryPager.NextPage(context)
-// 		if err != nil {
-// 			handle(err)
-// 		}
-
-// 		for _, item := range queryResponse.Items {
-// 			var itemResponseBody map[string]interface{}
-// 			json.Unmarshal(item, &itemResponseBody)
-// 		}
-// 	}
-// }
+func (h *CosmosHandler) GetAllItems() ([]Item, error) {
+	slog.Debug("getting all items")
+	pk := azcosmos.NewPartitionKeyString(h.PartitionKey)
+	queryPager := h.ContainerClient.NewQueryItemsPager("SELECT * FROM docs c", pk, nil)
+	allItems := []Item{}
+	for queryPager.More() {
+		slog.Debug("found items")
+		queryResponse, err := queryPager.NextPage(context.Background())
+		if err != nil {
+			return nil, fmt.Errorf("failed to get next page: %v", err)
+		}
+		fmt.Printf("%+v\n", queryResponse)
+		for _, respItem := range queryResponse.Items {
+			var item Item
+			err := json.Unmarshal(respItem, &item)
+			if err != nil {
+				return nil, fmt.Errorf("failed to unmarshal item: %v", err)
+			}
+			slog.Debug("got item", "id", item.Id)
+			allItems = append(allItems, item)
+		}
+	}
+	return allItems, nil
+}

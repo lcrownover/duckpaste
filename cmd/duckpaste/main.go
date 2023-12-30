@@ -73,5 +73,7 @@ func main() {
 		os.Exit(1)
 	}
 
+	go db.StartCleaner(cosmosHandler, db.NewCleanerOpts(1))
+
 	web.StartServer()
 }

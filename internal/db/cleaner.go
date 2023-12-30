@@ -1,6 +1,10 @@
 package db
 
-import "time"
+import (
+	"fmt"
+	"log/slog"
+	"time"
+)
 
 // Cleaner is a process that runs in a goroutine and periodically cleans up
 // expired items from the database.
@@ -10,18 +14,30 @@ type CleanerOpts struct {
 	Interval time.Duration
 }
 
-func NewCleanerOpts() *CleanerOpts {
+func NewCleanerOpts(intervalMinutes int) *CleanerOpts {
 	return &CleanerOpts{
-		Interval: 1 * time.Hour,
+		Interval: time.Duration(intervalMinutes) * time.Minute,
 	}
 }
 
-func StartCleaner(opts *CleanerOpts) {
+func StartCleaner(h *CosmosHandler, opts *CleanerOpts) {
+	slog.Debug("starting cleaner")
+	if opts == nil {
+		opts = NewCleanerOpts(60)
+	}
 	for {
-		// Get all items
-		// Filter out expired items
-		// Delete expired items
-		// Sleep
+		slog.Info("Cleaner running")
+		allItems, err := h.GetAllItems()
+		if err != nil {
+			slog.Error("Failed to get all items", "error", err)
+			goto sleep
+		}
+		for _, item := range allItems {
+			// Check if item is expired
+			fmt.Println(item)
+		}
+	sleep:
+		slog.Info("Cleaner sleeping", "duration", opts.Interval)
 		time.Sleep(opts.Interval)
 	}
 }
