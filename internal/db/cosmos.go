@@ -185,7 +185,7 @@ func (h *CosmosHandler) CreateItem(itemID ItemID, item *Item) error {
 	}
 
 	// Specifies the value of the partiton key
-	pk := azcosmos.NewPartitionKeyString(string(itemID))
+	pk := azcosmos.NewPartitionKeyString(h.PartitionKey)
 
 	b, err := json.Marshal(item)
 	if err != nil {
@@ -214,7 +214,7 @@ func (h *CosmosHandler) ReadItem(itemID ItemID) (*Item, error) {
 	}
 
 	// Specifies the value of the partiton key
-	pk := azcosmos.NewPartitionKeyString(string(itemID))
+	pk := azcosmos.NewPartitionKeyString(h.PartitionKey)
 
 	ctx := context.TODO()
 	itemResponse, err := containerClient.ReadItem(ctx, pk, string(itemID), nil)
@@ -239,7 +239,7 @@ func (h *CosmosHandler) DeleteItem(itemID ItemID) error {
 	}
 
 	// Specifies the value of the partiton key
-	pk := azcosmos.NewPartitionKeyString(string(itemID))
+	pk := azcosmos.NewPartitionKeyString(h.PartitionKey)
 
 	ctx := context.TODO()
 	itemResponse, err := containerClient.DeleteItem(ctx, pk, string(itemID), nil)
