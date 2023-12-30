@@ -23,7 +23,7 @@ type CosmosHandler struct {
 	// Data
 	DatabaseName  string
 	ContainerName string
-	PartitionKey  string
+	Partition     string
 }
 
 func NewCosmosHandler(cfg *CosmosConfig) (*CosmosHandler, error) {
@@ -39,7 +39,7 @@ func NewCosmosHandler(cfg *CosmosConfig) (*CosmosHandler, error) {
 		ContainerClient: nil,
 		DatabaseName:    cfg.DatabaseName,
 		ContainerName:   cfg.ContainerName,
-		PartitionKey:    cfg.PartitionKey,
+		Partition:       cfg.Partition,
 	}, nil
 }
 
@@ -50,7 +50,7 @@ func (h *CosmosHandler) Init() error {
 	}
 	h.DatabaseClient = databaseClient
 
-	containerClient, err := CreateContainer(h.Client, h.DatabaseName, h.ContainerName, h.PartitionKey)
+	containerClient, err := CreateContainer(h.Client, h.DatabaseName, h.ContainerName, "/partition")
 	if err != nil {
 		return fmt.Errorf("failed to create container: %v", err)
 	}
@@ -61,7 +61,7 @@ func (h *CosmosHandler) Init() error {
 
 type Item struct {
 	Id            ItemID      `json:"id"`
-	Partitionkey  string      `json:"partitionKey"`
+	Partition     string      `json:"partitionKey"`
 	LifetimeHours int         `json:"lifetimeHours"`
 	Content       ItemContent `json:"content"`
 	DeleteOnRead  bool        `json:"deleteOnRead"`
@@ -71,7 +71,7 @@ type Item struct {
 func (h *CosmosHandler) NewItem(content string, lifetimeHours int, deleteOnRead bool) *Item {
 	return &Item{
 		Id:            GetRandomID(),
-		Partitionkey:  h.PartitionKey,
+		Partition:     h.Partition,
 		LifetimeHours: lifetimeHours,
 		Content:       EncodeContent(content),
 		DeleteOnRead:  deleteOnRead,
@@ -120,7 +120,7 @@ func CreateDatabase(client *azcosmos.Client, databaseName string) (*azcosmos.Dat
 	return databaseClient, nil
 }
 
-func CreateContainer(client *azcosmos.Client, databaseName, containerName, partitionKey string) (*azcosmos.ContainerClient, error) {
+func CreateContainer(client *azcosmos.Client, databaseName, containerName, partitionKeyPath string) (*azcosmos.ContainerClient, error) {
 	slog.Debug("creating container")
 
 	databaseClient, err := client.NewDatabase(databaseName)
@@ -132,7 +132,7 @@ func CreateContainer(client *azcosmos.Client, databaseName, containerName, parti
 	containerProperties := azcosmos.ContainerProperties{
 		ID: containerName,
 		PartitionKeyDefinition: azcosmos.PartitionKeyDefinition{
-			Paths: []string{fmt.Sprintf("/%s", partitionKey)},
+			Paths: []string{partitionKeyPath},
 		},
 	}
 
@@ -197,7 +197,7 @@ func (h *CosmosHandler) CreateItem(itemID ItemID, item *Item) error {
 	}
 
 	// Specifies the value of the partiton key
-	pk := azcosmos.NewPartitionKeyString(h.PartitionKey)
+	pk := azcosmos.NewPartitionKeyString(h.Partition)
 
 	b, err := json.Marshal(item)
 	if err != nil {
@@ -226,7 +226,7 @@ func (h *CosmosHandler) ReadItem(itemID ItemID) (*Item, error) {
 	}
 
 	// Specifies the value of the partiton key
-	pk := azcosmos.NewPartitionKeyString(h.PartitionKey)
+	pk := azcosmos.NewPartitionKeyString(h.Partition)
 
 	ctx := context.TODO()
 	itemResponse, err := containerClient.ReadItem(ctx, pk, string(itemID), nil)
@@ -251,7 +251,7 @@ func (h *CosmosHandler) DeleteItem(itemID ItemID) error {
 	}
 
 	// Specifies the value of the partiton key
-	pk := azcosmos.NewPartitionKeyString(h.PartitionKey)
+	pk := azcosmos.NewPartitionKeyString(h.Partition)
 
 	ctx := context.TODO()
 	itemResponse, err := containerClient.DeleteItem(ctx, pk, string(itemID), nil)
@@ -265,7 +265,7 @@ func (h *CosmosHandler) DeleteItem(itemID ItemID) error {
 
 func (h *CosmosHandler) GetAllItems() ([]Item, error) {
 	slog.Debug("getting all items")
-	pk := azcosmos.NewPartitionKeyString(h.PartitionKey)
+	pk := azcosmos.NewPartitionKeyString(h.Partition)
 	queryPager := h.ContainerClient.NewQueryItemsPager("SELECT * FROM docs c", pk, nil)
 	allItems := []Item{}
 	for queryPager.More() {
