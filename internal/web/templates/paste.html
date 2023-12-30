@@ -5,8 +5,17 @@
         <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
     </head>
     <body>
-        <form>
-            <input type="text">
+        <h2>Paste</h2>
+        <form hx-post="/api/paste" hx-swap="none">
+            <textarea name="content" placeholder="Paste here!"></textarea>
+            <label for="deleteOnRead">
+                <input type="checkbox" id="switch" name="deleteOnRead" role="switch">
+                Delete on first read
+              </label>
+            <input type="submit" value="Submit">
         </form>
+    <script>
+
+    </script>
     </body>
 </html>
