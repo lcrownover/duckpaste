@@ -126,14 +126,12 @@ func createPasteEntry(content string, lifetimeHours int, deleteOnRead bool) (Pas
 		newEntry.LifetimeHours = defaultLifetime
 	}
 
-	// generate unique key
-	newEntry.Id = string(db.GetRandomID())
-
 	//convert
-	newDbItem := newEntry.toDbItem()
+	newDbItem := dbClient.NewItem(newEntry.Content, newEntry.LifetimeHours, newEntry.DeleteOnRead)
+	newEntry.Id = string(newDbItem.Id)
 
 	// put it in the database
-	err := dbClient.CreateItem(db.ItemID(newEntry.Id), &newDbItem)
+	err := dbClient.CreateItem(newDbItem.Id, newDbItem)
 	if err != nil {
 		return newEntry, err
 	}
