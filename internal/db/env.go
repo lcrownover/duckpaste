@@ -6,11 +6,11 @@ import (
 )
 
 type CosmosConfig struct {
-	Endpoint         string
-	Key              string
-	DatabaseName     string
-	ContainerName    string
-	PartitionKeyPath string
+	Endpoint      string
+	Key           string
+	DatabaseName  string
+	ContainerName string
+	PartitionKey  string
 }
 
 func GetConfig() (*CosmosConfig, error) {
@@ -31,16 +31,16 @@ func GetConfig() (*CosmosConfig, error) {
 	if !found {
 		return nil, fmt.Errorf("COSMOS_CONTAINER environment variable not set")
 	}
-	partitionKeyPath, found := os.LookupEnv("COSMOS_PARTITION_KEY_PATH")
+	partitionKey, found := os.LookupEnv("COSMOS_PARTITION_KEY")
 	if !found {
-		return nil, fmt.Errorf("COSMOS_PARTITION_KEY_PATH environment variable not set")
+		return nil, fmt.Errorf("COSMOS_PARTITION_KEY environment variable not set")
 	}
 
 	return &CosmosConfig{
-		Endpoint:         endpoint,
-		Key:              key,
-		DatabaseName:     databaseName,
-		ContainerName:    containerName,
-		PartitionKeyPath: partitionKeyPath,
+		Endpoint:      endpoint,
+		Key:           key,
+		DatabaseName:  databaseName,
+		ContainerName: containerName,
+		PartitionKey:  partitionKey,
 	}, nil
 }

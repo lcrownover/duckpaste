@@ -39,7 +39,7 @@ func NewCosmosHandler(cfg *CosmosConfig) (*CosmosHandler, error) {
 		ContainerClient: nil,
 		DatabaseName:    cfg.DatabaseName,
 		ContainerName:   cfg.ContainerName,
-		PartitionKey:    cfg.PartitionKeyPath,
+		PartitionKey:    cfg.PartitionKey,
 	}, nil
 }
 
