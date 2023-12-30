@@ -132,7 +132,7 @@ func CreateContainer(client *azcosmos.Client, databaseName, containerName, parti
 	containerProperties := azcosmos.ContainerProperties{
 		ID: containerName,
 		PartitionKeyDefinition: azcosmos.PartitionKeyDefinition{
-			Paths: []string{partitionKey},
+			Paths: []string{fmt.Sprintf("/%s", partitionKey)},
 		},
 	}
 
