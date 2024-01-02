@@ -1,4 +1,4 @@
-.PHONY: build install clean run container 
+.PHONY: build install clean run container
 
 all: build
 
@@ -8,12 +8,14 @@ build:
 run: build
 	@go run cmd/duckpaste/main.go
 
-install: 
+install:
 	@cp bin/duckpaste /usr/local/bin/duckpaste
 
 container:
 	@docker build -t duckpaste .
 
+run_container:
+	@docker run -it --env-file env -p 8080:8080 duckpaste
+
 clean:
 	@rm -f bin/duckpaste /usr/local/bin/duckpaste
-

@@ -1,8 +1,8 @@
-FROM golang:1.21.5
+FROM golang:1.21
 
 WORKDIR /usr/src/app
 
 COPY . .
-RUN go build -v -o /usr/local/bin/app ./...
+RUN go build -v -o /usr/local/bin/app cmd/duckpaste/main.go
 
 CMD ["app"]

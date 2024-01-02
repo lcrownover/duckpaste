@@ -81,6 +81,7 @@ func (h *CosmosHandler) NewItem(content string, lifetimeHours int, deleteOnRead 
 
 func GetCostmosClient(cfg *CosmosConfig) (*azcosmos.Client, error) {
 	slog.Debug("getting cosmos client")
+	fmt.Printf("config: %+v\n", cfg)
 	cred, err := azcosmos.NewKeyCredential(cfg.Key)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a credential: %v", err)
