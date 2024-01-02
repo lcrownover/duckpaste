@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"html/template"
 	"io/fs"
-	"log/slog"
 	"net/http"
 	"regexp"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/lcrownover/duckpaste/internal/db"
+	"github.com/lcrownover/duckpaste/internal/message"
 )
 
 const (
@@ -52,18 +52,30 @@ func NewPasteEntryFromDbItem(item db.Item) PasteEntry {
 var pastesDummy []PasteEntry
 var dbClient *db.CosmosHandler
 
-func StartServer() {
+func StartServer(ch chan<- message.Message) {
 	dbConfig, err := db.GetConfig()
 	if err != nil {
-		slog.Error(err.Error())
+		ch <- message.Message{
+			Status: message.Error,
+			Text:   "failed to get Cosmos Config: " + err.Error(),
+			Source: "StartServer",
+		}
 	}
 	dbClient, err = db.NewCosmosHandler(dbConfig)
 	if err != nil {
-		slog.Error(err.Error())
+		ch <- message.Message{
+			Status: message.Error,
+			Text:   "failed to create Cosmos Handler: " + err.Error(),
+			Source: "StartServer",
+		}
 	}
 	err = dbClient.Init()
 	if err != nil {
-		slog.Error(err.Error())
+		ch <- message.Message{
+			Status: message.Error,
+			Text:   "failed to initialize Cosmos Handler: " + err.Error(),
+			Source: "StartServer",
+		}
 	}
 	server := gin.Default()
 	pattern := "templates/*html"
@@ -71,7 +83,14 @@ func StartServer() {
 	server.GET("/api/paste", getPasteApi)
 	server.POST("/api/paste", createPasteApi)
 	server.GET("/paste", pasteFrontEnd)
-	server.Run()
+	err = server.Run()
+	if err != nil {
+		ch <- message.Message{
+			Status: message.Error,
+			Text:   "failed to start server: " + err.Error(),
+			Source: "StartServer",
+		}
+	}
 
 }
 

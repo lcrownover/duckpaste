@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/lcrownover/duckpaste/internal/db"
+	"github.com/lcrownover/duckpaste/internal/message"
 	"github.com/lcrownover/duckpaste/internal/web"
 )
 
@@ -66,7 +67,20 @@ func main() {
 		os.Exit(1)
 	}
 
-	go db.StartCleaner(cosmosHandler, db.NewCleanerOpts(1))
+	messagesCh := make(chan message.Message, 100)
 
-	web.StartServer()
+	go db.StartCleaner(messagesCh, cosmosHandler, db.NewCleanerOpts(1))
+
+	go web.StartServer(messagesCh)
+
+	for msg := range messagesCh {
+		switch {
+		case msg.Status == message.Info:
+			slog.Info(msg.Text, "source", msg.Source)
+		case msg.Status == message.Warning:
+			slog.Warn(msg.Text, "source", msg.Source)
+		case msg.Status == message.Error:
+			slog.Error(msg.Text, "source", msg.Source)
+		}
+	}
 }
