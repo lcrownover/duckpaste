@@ -1,13 +1,13 @@
 <script>
 	import { page } from '$app/stores';
-	import logo from '$lib/images/duck.png';
+	import logo from '$lib/images/UOSignature-WHT.png';
 	import github from '$lib/images/github-white.png';
 </script>
 
 <header>
-	<div class="corner">
+	<div class="corner corner-left">
 		<a href="https://uoregon.edu">
-			<img src={logo} alt="SvelteKit" />
+			<img src={logo} alt="University of Oregon" />
 		</a>
 	</div>
 
@@ -22,7 +22,7 @@
 		</ul>
 	</nav>
 
-	<div class="corner">
+	<div class="corner corner-right">
 		<a href="https://github.com/lcrownover/duckpaste" target="_blank" rel="noopener noreferrer">
 			<img src={github} alt="GitHub" />
 		</a>
@@ -43,17 +43,13 @@
 		height: 3em;
 	}
 
-	.corner a {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 100%;
-		height: 100%;
+	.corner-left img {
+		height: 3em;
+		object-fit: contain;
 	}
 
-	.corner img {
-		width: 2em;
-		height: 2em;
+	.corner-right img {
+		height: 3em;
 		object-fit: contain;
 	}
 
@@ -87,7 +83,6 @@
 		color: var(--color-text);
 		font-weight: 700;
 		font-size: 1rem;
-		/* text-transform: uppercase; */
 		letter-spacing: 0.1em;
 		text-decoration: none;
 		transition: color 0.2s linear;
