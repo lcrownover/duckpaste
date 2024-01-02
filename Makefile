@@ -1,5 +1,7 @@
 .PHONY: build install clean run container 
 
+all: build
+
 build:
 	@go build -o bin/duckpaste cmd/duckpaste/main.go
 

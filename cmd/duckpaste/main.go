@@ -74,12 +74,12 @@ func main() {
 	go web.StartServer(messagesCh)
 
 	for msg := range messagesCh {
-		switch {
-		case msg.Status == message.Info:
+		switch msg.Status {
+		case message.Info:
 			slog.Info(msg.Text, "source", msg.Source)
-		case msg.Status == message.Warning:
+		case message.Warning:
 			slog.Warn(msg.Text, "source", msg.Source)
-		case msg.Status == message.Error:
+		case message.Error:
 			slog.Error(msg.Text, "source", msg.Source)
 		}
 	}
