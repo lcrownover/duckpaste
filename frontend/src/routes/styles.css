@@ -34,14 +34,9 @@ body {
 }
 
 main {
-  flex: 1;
   display: flex;
-  flex-direction: column;
-  padding: 1rem;
-  width: 100%;
-  max-width: 64rem;
-  margin: 0 auto;
-  box-sizing: border-box;
+  justify-content: left;
+  padding: 1rem
 }
 
 h1,
@@ -54,9 +49,24 @@ p {
   line-height: 1.5;
 }
 
+.submit {
+	display: flex;
+	justify-content: right;
+  margin-top: 10%;
+}
+
+.options {
+	display: flex;
+	justify-content: space-between;
+	margin-top: 2%;
+	margin-bottom: 2%;
+	align-items: center;
+}
+
 a {
-  color: var(--color-uo-white);
-  text-decoration: none;
+	color: var(--color-uo-white);
+	text-decoration: none;
+	margin: 1rem;
 }
 
 a:hover {
@@ -69,7 +79,7 @@ h1 {
 }
 
 h2 {
-  font-size: 1rem;
+  font-size: 2rem;
 }
 
 pre {
@@ -83,39 +93,37 @@ pre {
   color: var(--color-text);
 }
 
-input,
+label {
+	font-size: 1.5rem;
+}
+
 button {
   font-size: inherit;
   font-family: inherit;
+  padding: 3%;
+  cursor: pointer;
+  border-radius: 8px;
 }
 
 header {
   display: flex;
   justify-content: space-between;
   background: linear-gradient(0deg, #007030 25%, #104735 135%);
-  padding-top: 20px;
-  padding-bottom: 20px;
+  padding-top: 14px;
+  padding-bottom: 14px;
 }
 
-.corner {
-  width: 3em;
-  height: 3em;
-}
 
 .corner-left img {
-  height: 3em;
+  height: 3rem;
   object-fit: contain;
 }
 
 .corner-right img {
-  height: 3em;
+  height: 3rem;
   object-fit: contain;
 }
 
-nav {
-  display: flex;
-  justify-content: center;
-}
 
 ul {
   position: relative;
@@ -123,40 +131,25 @@ ul {
   margin: 0;
   height: 3em;
   display: flex;
-  justify-content: center;
-  align-items: center;
   list-style: none;
-  background-size: contain;
 }
 
 li {
   position: relative;
   height: 100%;
+  margin-right: 10%;
+  margin-left: 10%;
 }
 
 nav a {
   display: flex;
-  height: 100%;
-  align-items: center;
-  padding: 0 0.5rem;
   color: var(--color-text);
-  font-weight: 700;
-  font-size: 1rem;
-  letter-spacing: 0.1em;
-  text-decoration: none;
   transition: color 0.2s linear;
+  font-size: x-large;
 }
 
 a:hover {
   color: var(--color-uo-yellow);
-}
-
-section {
-  display: flex;
-  flex-direction: column;
-  justify-content: left;
-  align-items: left;
-  flex: 0.6;
 }
 
 .row {
@@ -169,8 +162,7 @@ section {
 .column {
   display: flex;
   flex-direction: column;
-  flex-basis: 100%;
-  flex: 1;
+  min-width: 20vw;
 }
 
 #paste-input {
@@ -181,12 +173,24 @@ section {
   height: 100%;
 }
 
-#paste-options {
+.burn {
+  width: 10%;
+  height: 100%;
+}
+
+.select-options {
+  padding: 2%;
+  font-size: large;
+}
+
+.paste-options {
   display: flex;
   flex-direction: column;
   width: 100%;
   height: 100%;
 }
+
+
 
 h1 {
   width: 100%;
@@ -199,18 +203,20 @@ h1 {
   height: 100%;
 }
 
-/* form {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    max-width: 64rem;
-    margin: 0 auto;
-    height: 64rem;
-  } */
-
 textarea {
   height: auto;
   white-space: pre;
   overflow-wrap: normal;
   overflow-x: scroll;
+  background-color: var(--color-uo-white);
+  border: #007030;
+  border-radius: 2%;
+  border-style: solid;
+  color: var(--color-uo-black);
+  text-decoration: none;
+  padding: .5rem;
+}
+
+textarea:focus {
+  outline: none;
 }
