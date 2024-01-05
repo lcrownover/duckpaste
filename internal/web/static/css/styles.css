@@ -11,6 +11,7 @@
   --color-uo-green-darker: #104735;
   --color-uo-yellow: #fee11a;
   --color-uo-black: #000000;
+  --color-uo-grey: #a2aaad;
   --color-text: var(--color-uo-white);
   font-family: var(--font-body);
   color: var(--color-text);
@@ -43,7 +44,7 @@ header {
     var(--color-uo-green-darker) 135%
   );
   width: 100%;
-  height: 60px;
+  height: 80px;
   min-height: 60px;
 }
 
@@ -74,8 +75,15 @@ nav {
   justify-content: space-between;
 }
 
+.navitem {
+  margin: 1rem;
+  font-size: 1.2rem;
+  padding-right: 1rem;
+}
+
 .logo {
   margin: 1rem;
+  height: 50px;
 }
 
 .navitem {
@@ -89,7 +97,7 @@ nav {
 }
 
 .form-options {
-  width: 300px;
+  width: 360px;
 }
 
 .form-option {
@@ -118,36 +126,34 @@ pre {
 }
 
 h1,
-h2 {
+h2,
+h3 {
   color: var(--color-uo-yellow);
 }
 
 textarea {
+  background-color: var(--color-dark-background);
+  color: var(--color-uo-white);
+  font-family: "Roboto Mono", monospace;
+  outline: none;
+  border-radius: 4px;
   padding: 4px 4px;
   box-sizing: border-box;
-  border-radius: 4px;
-  outline: none;
-  font-family: "Roboto Mono", monospace;
+  border: 1px solid var(--color-uo-grey);
 }
 
 textarea:focus {
-  border: 2px solid var(--color-uo-green);
-  outline: none;
-}
-
-input[type="submit"] {
-  cursor: pointer;
-  padding: 8px 8px;
-  border-radius: 4px;
-  margin: 20px;
-  width: 200px;
+  border: 1px solid var(--color-uo-green);
 }
 
 select {
   background-color: var(--color-dark-background);
   color: var(--color-uo-white);
+  outline: none;
   padding: 4px 4px;
   border-radius: 4px;
+  box-sizing: border-box;
+  border: 1px solid var(--color-uo-grey);
 }
 input[type="select"]:focus {
   border: 1px solid var(--color-uo-green);
@@ -160,21 +166,22 @@ option {
 input {
   background-color: var(--color-dark-background);
   color: var(--color-uo-white);
-}
-
-input[type="password"] {
+  outline: none;
+  border-radius: 4px;
+  border: 1px solid var(--color-uo-grey);
   padding: 4px 4px;
   box-sizing: border-box;
-  border-radius: 4px;
-}
-input[type="password"]:focus {
-  border: 3px solid var(--color-uo-green);
-  outline: none;
 }
 
-textarea {
-  background-color: var(--color-dark-background);
-  color: var(--color-uo-white);
+input[type="password"]:focus {
+  border: 1px solid var(--color-uo-green);
+}
+
+input[type="submit"] {
+  cursor: pointer;
+  padding: 8px 8px;
+  margin: 20px;
+  width: 120px;
 }
 
 a {
@@ -184,4 +191,12 @@ a {
 
 a:hover {
   text-decoration: underline;
+}
+
+#logo-image {
+  height: 100%;
+}
+
+.material-symbols-outlined {
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
 }

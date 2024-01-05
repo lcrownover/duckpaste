@@ -1,6 +1,6 @@
 <html>
   <head>
-    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/static/css/styles.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -13,17 +13,18 @@
       <header>
         <div class="app-header">
           <nav>
-            <span class="navitem title"><a href="/">[img] PASTE</a></span>
-            <span class="navitem"><a href="/">Home</a></span>
-            <span class="navitem"><a href="/about">About</a></span>
+            <span class="navitem"><a href="/">home</a></span>
+            <span class="navitem"><a href="/about">about</a></span>
             <span class="navitem"
               ><a href="https://github.com/lcrownover/duckpaste"
-                >Source</a
+                >source</a
               ></span
             >
           </nav>
           <div class="logo">
-            <a href="https://uoregon.edu">figure out image scaling</a>
+            <a href="https://uoregon.edu"
+              ><img src="/static/images/uo-logo.png" id="logo-image"
+            /></a>
           </div>
         </div>
       </header>
@@ -31,7 +32,6 @@
         <div class="app-form">
           <form action="/api/submit" method="post">
             <div class="form-input">
-              <h1>New Paste</h1>
               <textarea
                 name="paste-content"
                 class="paste-content"
@@ -41,19 +41,19 @@
               ></textarea>
             </div>
             <div class="form-options">
-              <h2>Optional Paste Settings</h2>
+              <h3>paste settings</h3>
               <div class="form-option">
-                <label for="paste-expiration">Paste Expiration:</label>
+                <label for="paste-expiration">expiration:</label>
                 <select name="paste-expiration" id="paste-expiration">
-                  <option value="1">1 Hour</option>
-                  <option value="8">8 Hours</option>
-                  <option value="24">24 Hours</option>
-                  <option value="48">48 Hours</option>
-                  <option value="168">1 Week</option>
+                  <option value="1">1 hour</option>
+                  <option value="8">8 hours</option>
+                  <option value="24">24 hours</option>
+                  <option value="48">48 hours</option>
+                  <option value="168">1 week</option>
                 </select>
               </div>
               <div class="form-option">
-                <label for="paste-password">Password:</label>
+                <label for="paste-password">password [optional]:</label>
                 <input
                   type="password"
                   name="paste-password"
@@ -64,7 +64,7 @@
                 <input
                   type="submit"
                   id="paste-create"
-                  value="Create New Paste"
+                  value="Create"
                 />
               </div>
             </div>

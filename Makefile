@@ -8,6 +8,9 @@ build:
 run: build
 	@go run cmd/duckpaste/main.go
 
+debug: build
+	@go run cmd/duckpaste/main.go -debug
+
 install:
 	@cp bin/duckpaste /usr/local/bin/duckpaste
 
