@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"html/template"
 	"io/fs"
+	"log/slog"
 	"net/http"
 	"regexp"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/lcrownover/duckpaste/internal/db"
-	"github.com/lcrownover/duckpaste/internal/message"
 )
 
 const (
@@ -29,16 +29,15 @@ type PasteEntry struct {
 	DeleteOnRead  bool   `json:"deleteOnRead" form:"deleteOnRead"`
 }
 
-func (p *PasteEntry) toDbItem() db.Item {
-	return db.Item{
-		Id:            db.ItemID(p.Id),
-		LifetimeHours: p.LifetimeHours,
-		Content:       db.ItemContent(p.Content),
-		DeleteOnRead:  p.DeleteOnRead,
-		Created:       db.GetCurrentTime(),
-	}
-
-}
+// func (p *PasteEntry) toDbItem() db.Item {
+// 	return db.Item{
+// 		Id:            db.ItemID(p.Id),
+// 		LifetimeHours: p.LifetimeHours,
+// 		Content:       db.ItemContent(p.Content),
+// 		DeleteOnRead:  p.DeleteOnRead,
+// 		Created:       db.GetCurrentTime(),
+// 	}
+// }
 
 func NewPasteEntryFromDbItem(item db.Item) PasteEntry {
 	return PasteEntry{
@@ -49,47 +48,32 @@ func NewPasteEntryFromDbItem(item db.Item) PasteEntry {
 	}
 }
 
-var pastesDummy []PasteEntry
+// var pastesDummy []PasteEntry
 var dbClient *db.CosmosHandler
 
-func StartServer(ch chan<- message.Message) {
+func StartServer() {
 	dbConfig, err := db.GetConfig()
 	if err != nil {
-		ch <- message.Message{
-			Status: message.Error,
-			Text:   "failed to get Cosmos Config: " + err.Error(),
-			Source: "StartServer",
-		}
+		slog.Error("failed to get Cosmos Config: "+err.Error(), "source", "StartServer")
 	}
 	dbClient, err = db.NewCosmosHandler(dbConfig)
 	if err != nil {
-		ch <- message.Message{
-			Status: message.Error,
-			Text:   "failed to create Cosmos Handler: " + err.Error(),
-			Source: "StartServer",
-		}
+		slog.Error("failed to create Cosmos Handler: "+err.Error(), "source", "StartServer")
 	}
 	err = dbClient.Init()
 	if err != nil {
-		ch <- message.Message{
-			Status: message.Error,
-			Text:   "failed to initialize Cosmos Handler: " + err.Error(),
-			Source: "StartServer",
-		}
+		slog.Error("failed to initialize Cosmos Handler: "+err.Error(), "source", "StartServer")
 	}
 	server := gin.Default()
 	pattern := "templates/*html"
 	LoadHTMLFromEmbedFS(server, templatesFS, pattern)
 	server.GET("/api/paste", getPasteApi)
 	server.POST("/api/paste", createPasteApi)
-	server.GET("/paste", pasteFrontEnd)
+	server.GET("/", pasteFrontEnd)
+	server.Static("/static", "./static")
 	err = server.Run()
 	if err != nil {
-		ch <- message.Message{
-			Status: message.Error,
-			Text:   "failed to start server: " + err.Error(),
-			Source: "StartServer",
-		}
+		slog.Error("failed to start server: "+err.Error(), "source", "StartServer")
 	}
 
 }
@@ -216,5 +200,5 @@ func getPasteApi(c *gin.Context) {
 }
 
 func pasteFrontEnd(c *gin.Context) {
-	c.HTML(http.StatusOK, "templates/paste.html", nil)
+	c.HTML(http.StatusOK, "templates/index.html", nil)
 }

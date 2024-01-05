@@ -2,12 +2,10 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log/slog"
 	"os"
 
 	"github.com/lcrownover/duckpaste/internal/db"
-	"github.com/lcrownover/duckpaste/internal/message"
 	"github.com/lcrownover/duckpaste/internal/web"
 )
 
@@ -41,46 +39,33 @@ func main() {
 	}
 	cosmosHandler.Init()
 
-	// Test payload
-	content := "pretend-im-a-paste"
-	item := cosmosHandler.NewItem(content, 24, false)
+	// // Test payload
+	// content := "pretend-im-a-paste"
+	// item := cosmosHandler.NewItem(content, 24, false)
 
-	// Try to create an item
-	err = cosmosHandler.CreateItem(item.Id, item)
-	if err != nil {
-		slog.Error("Failed to create item", "error", err)
-		os.Exit(1)
-	}
+	// // Try to create an item
+	// err = cosmosHandler.CreateItem(item.Id, item)
+	// if err != nil {
+	// 	slog.Error("Failed to create item", "error", err)
+	// 	os.Exit(1)
+	// }
 
-	// Try to read an item
-	item, err = cosmosHandler.ReadItem(item.Id)
-	if err != nil {
-		slog.Error("Failed to read item", "error", err)
-		os.Exit(1)
-	}
-	fmt.Printf("Item: %+v\n", item)
+	// // Try to read an item
+	// item, err = cosmosHandler.ReadItem(item.Id)
+	// if err != nil {
+	// 	slog.Error("Failed to read item", "error", err)
+	// 	os.Exit(1)
+	// }
+	// fmt.Printf("Item: %+v\n", item)
 
-	// Try to delete an item
-	err = cosmosHandler.DeleteItem(item.Id)
-	if err != nil {
-		slog.Error("Failed to delete item", "error", err)
-		os.Exit(1)
-	}
+	// // Try to delete an item
+	// err = cosmosHandler.DeleteItem(item.Id)
+	// if err != nil {
+	// 	slog.Error("Failed to delete item", "error", err)
+	// 	os.Exit(1)
+	// }
 
-	messagesCh := make(chan message.Message, 100)
+	go db.StartCleaner(cosmosHandler, db.NewCleanerOpts(1))
 
-	go db.StartCleaner(messagesCh, cosmosHandler, db.NewCleanerOpts(1))
-
-	go web.StartServer(messagesCh)
-
-	for msg := range messagesCh {
-		switch msg.Status {
-		case message.Info:
-			slog.Info(msg.Text, "source", msg.Source)
-		case message.Warning:
-			slog.Warn(msg.Text, "source", msg.Source)
-		case message.Error:
-			slog.Error(msg.Text, "source", msg.Source)
-		}
-	}
+	web.StartServer()
 }

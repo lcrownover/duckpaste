@@ -14,7 +14,7 @@ install:
 container:
 	@docker build -t duckpaste .
 
-run_container:
+run_container: container
 	@docker run -it --env-file env -p 8080:8080 duckpaste
 
 clean:

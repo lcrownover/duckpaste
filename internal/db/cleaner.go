@@ -1,9 +1,8 @@
 package db
 
 import (
+	"log/slog"
 	"time"
-
-	"github.com/lcrownover/duckpaste/internal/message"
 )
 
 // Cleaner is a process that runs in a goroutine and periodically cleans up
@@ -20,58 +19,33 @@ func NewCleanerOpts(intervalMinutes int) *CleanerOpts {
 	}
 }
 
-func StartCleaner(ch chan<- message.Message, h *CosmosHandler, opts *CleanerOpts) {
-	ch <- message.Message{
-		Status: message.Debug,
-		Text:   "starting cleaner",
-		Source: "StartCleaner",
-	}
+func StartCleaner(h *CosmosHandler, opts *CleanerOpts) {
+	slog.Debug("starting cleaner", "source", "StartCleaner")
 	if opts == nil {
 		opts = NewCleanerOpts(60)
 	}
 	for {
-		ch <- message.Message{
-			Status: message.Info,
-			Text:   "cleaner running",
-			Source: "StartCleaner",
-		}
+		slog.Info("cleaner running", "source", "StartCleaner")
 		allItems, err := h.GetAllItems()
 		if err != nil {
-			ch <- message.Message{
-				Status: message.Error,
-				Text:   "failed to get all items: " + err.Error(),
-				Source: "StartCleaner",
-			}
+			slog.Error("failed to get all items: "+err.Error(), "source", "StartCleaner")
 			goto sleep
 		}
 		for _, item := range allItems {
 			// Check if item is expired
 			// itemCreatedTime, err := ParseTime(item.Created)
 			if err != nil {
-				ch <- message.Message{
-					Status: message.Error,
-					Text:   "failed to parse item time: " + err.Error(),
-					Source: "StartCleaner",
-				}
+				slog.Error("failed to parse item time: "+err.Error(), "source", "StartCleaner")
 				goto sleep
 			}
 			itemExpirationTime := item.Created.Add(time.Duration(item.LifetimeHours) * time.Hour)
 			if time.Now().After(itemExpirationTime) {
-				ch <- message.Message{
-					Status: message.Debug,
-					Text:   "deleting expired item id: " + string(item.Id),
-					Source: "StartCleaner",
-				}
-
+				slog.Debug("deleting expired item"+string(item.Id), "source", "StartCleaner")
 				h.DeleteItem(item.Id)
 			}
 		}
 	sleep:
-		ch <- message.Message{
-			Status: message.Info,
-			Text:   "cleaner sleeping",
-			Source: "StartCleaner",
-		}
+		slog.Info("cleaner sleeping", "source", "StartCleaner")
 		time.Sleep(opts.Interval)
 	}
 }
