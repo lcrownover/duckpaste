@@ -30,3 +30,5 @@ the link is used
   Does proofpoint URL checking read the content and trigger the delete?
 
 - [ ] optionally Password-protect the paste  
+
+- [ ] UI: no squiglies in textarea
