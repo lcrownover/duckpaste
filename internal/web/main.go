@@ -73,6 +73,7 @@ func StartServer() {
 	server.GET("/api/paste", getPasteApi)
 	server.POST("/api/paste", createPasteApi)
 	server.GET("/", pasteFrontEnd)
+	server.GET("/about", pasteFrontEndAbout)
 
 	// drill down into static FS
 	staticFS, err := fs.Sub(staticFS, "static")
@@ -213,4 +214,8 @@ func getPasteApi(c *gin.Context) {
 
 func pasteFrontEnd(c *gin.Context) {
 	c.HTML(http.StatusOK, "templates/index.html", nil)
+}
+
+func pasteFrontEndAbout(c *gin.Context) {
+	c.HTML(http.StatusOK, "templates/about.html", nil)
 }
