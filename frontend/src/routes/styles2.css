@@ -1,0 +1,189 @@
+@import "@fontsource/fira-mono";
+
+:root {
+  --font-body: Arial, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  --font-mono: "Fira Mono", monospace;
+  --color-theme-1: #f5f4f2;
+  --color-theme-2: #007030;
+  --color-theme-3: #fee11a;
+  --color-dark-background: #222222;
+  --color-uo-white: #f5f4f2;
+  --color-uo-green: #007030;
+  --color-uo-green-darker: #104735;
+  --color-uo-yellow: #fee11a;
+  --color-uo-black: #000000;
+  --color-text: var(--color-uo-white);
+  font-family: var(--font-body);
+  color: var(--color-text);
+}
+
+* {
+  color: var(--color-uo-white);
+  font-family: "Source Sans 3", sans-serif;
+}
+
+.canvas {
+  background-color: var(--color-uo-black);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: left;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+}
+
+header {
+  display: flex;
+  justify-content: center;
+  background: linear-gradient(
+    0deg,
+    var(--color-uo-green) 25%,
+    var(--color-uo-green-darker) 135%
+  );
+  width: 100%;
+  height: 60px;
+  min-height: 60px;
+}
+
+.app-header,
+.app-content {
+  display: flex;
+  align-items: center;
+  max-width: 1200px;
+  width: 100%;
+}
+
+.app-header {
+  justify-content: space-between;
+}
+
+.app-content {
+  background-color: var(--color-dark-background);
+  display: flex;
+  justify-content: left;
+  flex-direction: column;
+  align-items: start;
+  overflow-y: scroll;
+  height: 100%;
+}
+
+nav {
+  display: flex;
+  justify-content: space-between;
+}
+
+.logo {
+  margin: 1rem;
+}
+
+.navitem {
+  margin: 1rem;
+}
+
+.app-form {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px;
+}
+
+.form-options {
+  width: 300px;
+}
+
+.form-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.form-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+pre {
+  font-size: 16px;
+  font-family: var(--font-mono);
+  background-color: rgba(255, 255, 255, 0.45);
+  border-radius: 3px;
+  box-shadow: 2px 2px 6px rgb(255 255 255 / 25%);
+  padding: 0.5em;
+  overflow-x: auto;
+  color: var(--color-text);
+}
+
+h1,
+h2 {
+  color: var(--color-uo-yellow);
+}
+
+textarea {
+  padding: 4px 4px;
+  box-sizing: border-box;
+  border-radius: 4px;
+  outline: none;
+  font-family: "Roboto Mono", monospace;
+}
+
+textarea:focus {
+  border: 2px solid var(--color-uo-green);
+  outline: none;
+}
+
+input[type="submit"] {
+  cursor: pointer;
+  padding: 8px 8px;
+  border-radius: 4px;
+  margin: 20px;
+  width: 200px;
+}
+
+select {
+  background-color: var(--color-dark-background);
+  color: var(--color-uo-white);
+  padding: 4px 4px;
+  border-radius: 4px;
+}
+input[type="select"]:focus {
+  border: 1px solid var(--color-uo-green);
+}
+
+option {
+  color: var(--color-uo-white);
+}
+
+input {
+  background-color: var(--color-dark-background);
+  color: var(--color-uo-white);
+}
+
+input[type="password"] {
+  padding: 4px 4px;
+  box-sizing: border-box;
+  border-radius: 4px;
+}
+input[type="password"]:focus {
+  border: 3px solid var(--color-uo-green);
+  outline: none;
+}
+
+textarea {
+  background-color: var(--color-dark-background);
+  color: var(--color-uo-white);
+}
+
+a {
+  color: var(--color-uo-white);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}

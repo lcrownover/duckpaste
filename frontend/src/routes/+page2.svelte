@@ -1,0 +1,76 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto+Mono&family=Source+Sans+3&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="canvas">
+      <header>
+        <div class="app-header">
+          <nav>
+            <span class="navitem title"><a href="/">[img] PASTE</a></span>
+            <span class="navitem"><a href="/">Home</a></span>
+            <span class="navitem"><a href="/about">About</a></span>
+            <span class="navitem"
+              ><a href="https://github.com/lcrownover/duckpaste"
+                >Source</a
+              ></span
+            >
+          </nav>
+          <div class="logo">
+            <a href="https://uoregon.edu">figure out image scaling</a>
+          </div>
+        </div>
+      </header>
+      <div class="app-content">
+        <div class="app-form">
+          <form action="/api/submit" method="post">
+            <div class="form-input">
+              <h1>New Paste</h1>
+              <textarea
+                name="paste-content"
+                class="paste-content"
+                id="paste-content"
+                cols="80"
+                rows="20"
+              ></textarea>
+            </div>
+            <div class="form-options">
+              <h2>Optional Paste Settings</h2>
+              <div class="form-option">
+                <label for="paste-expiration">Paste Expiration:</label>
+                <select name="paste-expiration" id="paste-expiration">
+                  <option value="1">1 Hour</option>
+                  <option value="8">8 Hours</option>
+                  <option value="24">24 Hours</option>
+                  <option value="48">48 Hours</option>
+                  <option value="168">1 Week</option>
+                </select>
+              </div>
+              <div class="form-option">
+                <label for="paste-password">Password:</label>
+                <input
+                  type="password"
+                  name="paste-password"
+                  id="paste-password"
+                />
+              </div>
+              <div class="form-submit">
+                <input
+                  type="submit"
+                  id="paste-create"
+                  value="Create New Paste"
+                />
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
