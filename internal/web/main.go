@@ -22,6 +22,9 @@ const (
 //go:embed templates
 var templatesFS embed.FS
 
+//go:embed static
+var staticFS embed.FS
+
 type PasteEntry struct {
 	Id            string `json:"id" form:"id"`
 	LifetimeHours int    `json:"lifetimeHours" form:"lifetimeHours"`
@@ -70,7 +73,16 @@ func StartServer() {
 	server.GET("/api/paste", getPasteApi)
 	server.POST("/api/paste", createPasteApi)
 	server.GET("/", pasteFrontEnd)
-	server.Static("/static", "./static")
+
+	// drill down into static FS
+	staticFS, err := fs.Sub(staticFS, "static")
+	if err != nil {
+		slog.Error("failed to get sub FS: "+err.Error(), "source", "StartServer")
+	}
+
+	// serve embedded static files
+	server.StaticFS("/static", http.FS(staticFS))
+
 	err = server.Run()
 	if err != nil {
 		slog.Error("failed to start server: "+err.Error(), "source", "StartServer")
