@@ -26,7 +26,7 @@ func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, opts))
 	slog.SetDefault(logger)
 
-	cosmosConfig, err := db.GetConfig()
+	cosmosConfig, err := db.GetDBConfig()
 	if err != nil {
 		slog.Error("Failed to get Cosmos Config", "error", err)
 		os.Exit(1)

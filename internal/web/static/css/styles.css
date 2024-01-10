@@ -114,15 +114,41 @@ nav {
   margin-bottom: 10px;
 }
 
+.pasteDisplay {
+  display: flex;
+  flex-direction: column;
+  padding: 3rem;
+  max-width: 800px;
+  width: 100%;
+}
+
+.pasteCopy {
+  padding-left: 2rem;
+  padding-right: 2rem;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.pasteBlock {
+  max-width: 1200px;
+  width: 100%;
+  max-height: 50vh;
+  padding-left: 2rem;
+  padding-right: 2rem;
+  background-color: var(--color-dark-background);
+  outline: none;
+  border-radius: 4px;
+  box-sizing: border-box;
+  border: 1px solid var(--color-uo-grey);
+}
+
 pre {
-  font-size: 16px;
-  font-family: var(--font-mono);
-  background-color: rgba(255, 255, 255, 0.45);
-  border-radius: 3px;
-  box-shadow: 2px 2px 6px rgb(255 255 255 / 25%);
-  padding: 0.5em;
-  overflow-x: auto;
-  color: var(--color-text);
+  background-color: var(--color-dark-background);
+  color: var(--color-uo-white);
+  font-family: "Roboto Mono", monospace;
+  outline: none;
+  overflow-x: scroll;
+  overflow-y: scroll;
 }
 
 h1,

@@ -30,12 +30,13 @@
       </header>
       <div class="app-content">
         <div class="app-form">
-          <form action="/api/submit" method="post">
+          <form action="/api/paste" method="post">
             <div class="form-input">
               <textarea
-                name="paste-content"
-                class="paste-content"
-                id="paste-content"
+                name="pasteContent"
+                class="pasteContent"
+                id="pasteContent"
+                wrap="off"
                 cols="80"
                 rows="20"
               ></textarea>
@@ -43,8 +44,8 @@
             <div class="form-options">
               <h3>paste settings</h3>
               <div class="form-option">
-                <label for="paste-expiration">expiration:</label>
-                <select name="paste-expiration" id="paste-expiration">
+                <label for="pasteExpirationHours">expiration:</label>
+                <select name="pasteExpirationHours" id="pasteExpirationHours">
                   <option value="1">1 hour</option>
                   <option value="8">8 hours</option>
                   <option value="24">24 hours</option>
@@ -53,19 +54,15 @@
                 </select>
               </div>
               <div class="form-option">
-                <label for="paste-password">password [optional]:</label>
+                <label for="pastePassword">password [optional]:</label>
                 <input
                   type="password"
-                  name="paste-password"
-                  id="paste-password"
+                  name="pastePassword"
+                  id="pastePassword"
                 />
               </div>
               <div class="form-submit">
-                <input
-                  type="submit"
-                  id="paste-create"
-                  value="Create"
-                />
+                <input type="submit" id="pasteCreate" value="Create" />
               </div>
             </div>
           </form>

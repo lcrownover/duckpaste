@@ -13,7 +13,7 @@ type CosmosConfig struct {
 	Partition     string
 }
 
-func GetConfig() (*CosmosConfig, error) {
+func GetDBConfig() (*CosmosConfig, error) {
 	// Load Cosmos Endpoint and Key from environment variables
 	endpoint, found := os.LookupEnv("COSMOS_ENDPOINT")
 	if !found {

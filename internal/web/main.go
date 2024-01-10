@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"log/slog"
 	"net/http"
+	"os"
 	"regexp"
 	"strings"
 
@@ -26,36 +27,69 @@ var templatesFS embed.FS
 var staticFS embed.FS
 
 type PasteEntry struct {
-	Id            string `json:"id" form:"id"`
-	LifetimeHours int    `json:"lifetimeHours" form:"lifetimeHours"`
-	Content       string `json:"content" form:"content"`
-	DeleteOnRead  bool   `json:"deleteOnRead" form:"deleteOnRead"`
+	Id              string `json:"id"`
+	ExpirationHours int    `json:"expirationHours" form:"pasteExpirationHours"`
+	Content         string `json:"content" form:"pasteContent"`
+	DeleteOnRead    bool   `json:"deleteOnRead" form:"pasteDeleteOnRead"`
 }
 
-// func (p *PasteEntry) toDbItem() db.Item {
-// 	return db.Item{
-// 		Id:            db.ItemID(p.Id),
-// 		LifetimeHours: p.LifetimeHours,
-// 		Content:       db.ItemContent(p.Content),
-// 		DeleteOnRead:  p.DeleteOnRead,
-// 		Created:       db.GetCurrentTime(),
-// 	}
-// }
+type WebConfig struct {
+	Host string
+	Port string
+}
 
-func NewPasteEntryFromDbItem(item db.Item) PasteEntry {
-	return PasteEntry{
-		Id:            string(item.Id),
-		LifetimeHours: item.LifetimeHours,
-		Content:       string(item.Content),
-		DeleteOnRead:  item.DeleteOnRead,
+func (wc *WebConfig) Address() string {
+	return fmt.Sprintf("%s:%s", wc.Host, wc.Port)
+}
+
+type WebHandler struct {
+	config *WebConfig
+	server *gin.Engine
+}
+
+func (h *WebHandler) Run() error {
+	return h.server.Run(h.config.Address())
+}
+
+func NewWebHandler(c *WebConfig, server *gin.Engine) *WebHandler {
+	h := &WebHandler{config: c, server: server}
+	pattern := "templates/*html"
+	LoadHTMLFromEmbedFS(server, templatesFS, pattern)
+	server.GET("/api/paste", h.getPasteApi)
+	server.POST("/api/paste", h.createPasteApi)
+	server.GET("/", h.getRoot)
+	server.GET("/:pasteId", h.getPaste)
+	server.GET("/about", h.getAbout)
+
+	// drill down into static FS
+	staticFS, err := fs.Sub(staticFS, "static")
+	if err != nil {
+		slog.Error("failed to get sub FS: "+err.Error(), "source", "StartServer")
+	}
+
+	// serve embedded static files
+	server.StaticFS("/static", http.FS(staticFS))
+
+	return h
+}
+
+func GetWebConfig() *WebConfig {
+	host, found := os.LookupEnv("SERVER_HOST")
+	if !found {
+		host = "localhost"
+	}
+	port, found := os.LookupEnv("SERVER_PORT")
+	if !found {
+		port = "8080"
+	}
+	return &WebConfig{
+		Host: host,
+		Port: port,
 	}
 }
 
-// var pastesDummy []PasteEntry
-var dbClient *db.CosmosHandler
-
 func StartServer() {
-	dbConfig, err := db.GetConfig()
+	dbConfig, err := db.GetDBConfig()
 	if err != nil {
 		slog.Error("failed to get Cosmos Config: "+err.Error(), "source", "StartServer")
 	}
@@ -67,24 +101,14 @@ func StartServer() {
 	if err != nil {
 		slog.Error("failed to initialize Cosmos Handler: "+err.Error(), "source", "StartServer")
 	}
+
+	// get listen config from env
+	wc := GetWebConfig()
+
 	server := gin.Default()
-	pattern := "templates/*html"
-	LoadHTMLFromEmbedFS(server, templatesFS, pattern)
-	server.GET("/api/paste", getPasteApi)
-	server.POST("/api/paste", createPasteApi)
-	server.GET("/", pasteFrontEnd)
-	server.GET("/about", pasteFrontEndAbout)
+	webHandler := NewWebHandler(wc, server)
 
-	// drill down into static FS
-	staticFS, err := fs.Sub(staticFS, "static")
-	if err != nil {
-		slog.Error("failed to get sub FS: "+err.Error(), "source", "StartServer")
-	}
-
-	// serve embedded static files
-	server.StaticFS("/static", http.FS(staticFS))
-
-	err = server.Run()
+	err = webHandler.Run()
 	if err != nil {
 		slog.Error("failed to start server: "+err.Error(), "source", "StartServer")
 	}
@@ -121,47 +145,9 @@ func LoadAndAddToRoot(funcMap template.FuncMap, rootTemplate *template.Template,
 	return err
 }
 
-func getPasteEntry(id string) (PasteEntry, error) {
-	// get it
-	pasteEntry, err := dbClient.ReadItem(db.ItemID(id))
-	if err != nil {
-		return PasteEntry{}, fmt.Errorf("paste not found")
-	}
-
-	return NewPasteEntryFromDbItem(*pasteEntry), nil
-}
-
-func createPasteEntry(content string, lifetimeHours int, deleteOnRead bool) (PasteEntry, error) {
-	newEntry := PasteEntry{
-		Content:       content,
-		LifetimeHours: lifetimeHours,
-		DeleteOnRead:  deleteOnRead,
-	}
-
-	if newEntry.LifetimeHours == 0 {
-		newEntry.LifetimeHours = defaultLifetime
-	}
-
-	//convert
-	newDbItem := dbClient.NewItem(newEntry.Content, newEntry.LifetimeHours, newEntry.DeleteOnRead)
-	newEntry.Id = string(newDbItem.Id)
-
-	// put it in the database
-	err := dbClient.CreateItem(newDbItem.Id, newDbItem)
-	if err != nil {
-		return newEntry, err
-	}
-
-	return newEntry, nil
-}
-
-type errorResponse struct {
-	Message string `json:"message"`
-}
-
 // ENDPOINTS
 
-func createPasteApi(c *gin.Context) {
+func (h *WebHandler) createPasteApi(c *gin.Context) {
 	var paste PasteEntry
 
 	err := c.Bind(&paste)
@@ -179,19 +165,19 @@ func createPasteApi(c *gin.Context) {
 		return
 	}
 
-	paste, err = createPasteEntry(paste.Content, paste.LifetimeHours, paste.DeleteOnRead)
+	paste, err = createPasteEntry(paste.Content, paste.ExpirationHours, paste.DeleteOnRead)
 	if err != nil {
-		c.JSON(http.StatusNotFound, errorResponse{
+		c.JSON(http.StatusInternalServerError, errorResponse{
 			fmt.Sprintf("failed to create paste entry: %s", err),
 		})
 		return
 	}
 
-	c.JSON(http.StatusCreated, paste)
-
+	pasteUrl := fmt.Sprintf("/%s", paste.Id)
+	c.Redirect(http.StatusFound, pasteUrl)
 }
 
-func getPasteApi(c *gin.Context) {
+func (h *WebHandler) getPasteApi(c *gin.Context) {
 	pasteId := c.Query("id")
 	if pasteId == "" {
 		c.JSON(http.StatusNotFound, errorResponse{
@@ -212,10 +198,31 @@ func getPasteApi(c *gin.Context) {
 
 }
 
-func pasteFrontEnd(c *gin.Context) {
+func (h *WebHandler) getRoot(c *gin.Context) {
 	c.HTML(http.StatusOK, "templates/index.html", nil)
 }
 
-func pasteFrontEndAbout(c *gin.Context) {
+func (h *WebHandler) getPaste(c *gin.Context) {
+	pasteID := c.Param("pasteId")
+	paste, err := getPasteEntry(pasteID)
+	if err != nil {
+		c.HTML(http.StatusNotFound, "templates/notfound.html", nil)
+		return
+	}
+	decodedContent, err := db.DecodeContent(db.ItemContent(paste.Content))
+	if err != nil {
+		c.JSON(http.StatusNotFound, errorResponse{
+			"failed to decode content of paste",
+		})
+	}
+	// TODO(lcrown): fix https or http
+	pasteURL := fmt.Sprintf("http://%s/%s", h.config.Address(), paste.Id)
+	c.HTML(http.StatusOK, "templates/paste.html", gin.H{
+		"pasteURL":     pasteURL,
+		"pasteContent": decodedContent,
+	})
+}
+
+func (h *WebHandler) getAbout(c *gin.Context) {
 	c.HTML(http.StatusOK, "templates/about.html", nil)
 }
