@@ -30,12 +30,38 @@
       </header>
       <div class="app-content">
         <div class="pasteDisplay">
-          <div class="pasteCopy"><h3>{{ .pasteURL }}</h3></div>
+          <div class="pasteURL">
+            <button class="copyURLButton" onclick="copyText('urlString')">
+              Copy
+            </button>
+            <h3 id="urlString">{{ .pasteURL }}</h3>
+          </div>
+          <div class="copyPasteButtonContainer">
+            <button class="copyPasteButton" onclick="copyText('pasteString')">
+              Copy
+            </button>
+          </div>
           <div class="pasteBlock">
-            <pre><code>{{ .pasteContent }}</code></pre>
+            <pre id="pasteString"><code>{{ .pasteContent }}</code></pre>
           </div>
         </div>
       </div>
     </div>
+    <script>
+      function copyText(id) {
+        // Get the text field
+        var copyText = document.getElementById(id).innerText;
+
+        // Copy the text inside the text field
+        navigator.clipboard.writeText(copyText).then(
+          function () {
+            console.log("Async: Copying to clipboard was successful!");
+          },
+          function (err) {
+            console.error("Async: Could not copy text: ", err);
+          }
+        );
+      }
+    </script>
   </body>
 </html>

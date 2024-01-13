@@ -122,11 +122,50 @@ nav {
   width: 100%;
 }
 
-.pasteCopy {
-  padding-left: 2rem;
+.pasteURL {
   padding-right: 2rem;
   padding-top: 1rem;
   padding-bottom: 1rem;
+  display: flex;
+  justify-content: left;
+  align-items: center;
+}
+
+.copyURLButton {
+  padding-right: 1rem;
+  height: 2rem;
+  width: 100px;
+  cursor: pointer;
+  background-color: var(--color-dark-background);
+  color: var(--color-uo-white);
+  outline: none;
+  border-radius: 4px;
+  border: 1px solid var(--color-uo-grey);
+  padding: 4px 4px;
+  box-sizing: border-box;
+}
+
+#urlString {
+  padding-left: 1rem;
+}
+
+.copyPasteButtonContainer {
+  display: flex;
+  justify-content: right;
+  padding-bottom: .5rem;
+}
+
+.copyPasteButton {
+  width: 100px;
+  height: 2rem;
+  cursor: pointer;
+  background-color: var(--color-dark-background);
+  color: var(--color-uo-white);
+  outline: none;
+  border-radius: 4px;
+  border: 1px solid var(--color-uo-grey);
+  padding: 4px 4px;
+  box-sizing: border-box;
 }
 
 .pasteBlock {
