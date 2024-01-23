@@ -10,6 +10,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/lcrownover/duckpaste/internal/db"
@@ -27,10 +28,12 @@ var templatesFS embed.FS
 var staticFS embed.FS
 
 type PasteEntry struct {
-	Id              string `json:"id"`
-	ExpirationHours int    `json:"expirationHours" form:"pasteExpirationHours"`
-	Content         string `json:"content" form:"pasteContent"`
-	DeleteOnRead    bool   `json:"deleteOnRead" form:"pasteDeleteOnRead"`
+	Id              string    `json:"id"`
+	ExpirationHours int       `json:"expirationHours" form:"pasteExpirationHours"`
+	Content         string    `json:"content" form:"pasteContent"`
+	Password        string    `json:"password" form:"pastePassword"`
+	DeleteOnRead    bool      `json:"deleteOnRead" form:"pasteDeleteOnRead"`
+	Created         time.Time `json:"created"`
 }
 
 type WebConfig struct {
@@ -39,7 +42,13 @@ type WebConfig struct {
 }
 
 func (wc *WebConfig) Address() string {
-	return fmt.Sprintf("%s:%s", wc.Host, wc.Port)
+	var host string
+	if wc.Host == "localhost" {
+		host = ""
+	} else {
+		host = wc.Host
+	}
+	return fmt.Sprintf("%s:%s", host, wc.Port)
 }
 
 type WebHandler struct {
@@ -165,7 +174,7 @@ func (h *WebHandler) createPasteApi(c *gin.Context) {
 		return
 	}
 
-	paste, err = createPasteEntry(paste.Content, paste.ExpirationHours, paste.DeleteOnRead)
+	paste, err = createPasteEntry(paste)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, errorResponse{
 			fmt.Sprintf("failed to create paste entry: %s", err),
@@ -194,6 +203,17 @@ func (h *WebHandler) getPasteApi(c *gin.Context) {
 		return
 	}
 
+	// If the paste is set to delete on read and it's been longer than 10sec since it was created, delete it
+	if paste.DeleteOnRead && paste.Created.Add(time.Second*10).Before(time.Now()) {
+		err = deletePasteEntry(paste)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, errorResponse{
+				fmt.Sprintf("failed to delete paste: %s", err),
+			})
+			return
+		}
+	}
+
 	c.JSON(http.StatusOK, paste)
 
 }
@@ -208,6 +228,16 @@ func (h *WebHandler) getPaste(c *gin.Context) {
 	if err != nil {
 		c.HTML(http.StatusNotFound, "templates/notfound.html", nil)
 		return
+	}
+	// If the paste is set to delete on read and it's been longer than 10sec since it was created, delete it
+	if paste.DeleteOnRead && paste.Created.Add(time.Second*10).Before(time.Now()) {
+		err = deletePasteEntry(paste)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, errorResponse{
+				fmt.Sprintf("failed to delete paste: %s", err),
+			})
+			return
+		}
 	}
 	decodedContent, err := db.DecodeContent(db.ItemContent(paste.Content))
 	if err != nil {

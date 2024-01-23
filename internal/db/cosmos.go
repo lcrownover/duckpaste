@@ -64,16 +64,18 @@ type Item struct {
 	Partition     string      `json:"partition"`
 	LifetimeHours int         `json:"lifetimeHours"`
 	Content       ItemContent `json:"content"`
+	Password      ItemContent `json:"password"`
 	DeleteOnRead  bool        `json:"deleteOnRead"`
 	Created       time.Time   `json:"created"`
 }
 
-func (h *CosmosHandler) NewItem(content string, lifetimeHours int, deleteOnRead bool) *Item {
+func (h *CosmosHandler) NewItem(content string, lifetimeHours int, password string, deleteOnRead bool) *Item {
 	return &Item{
 		Id:            GetRandomID(),
 		Partition:     h.Partition,
 		LifetimeHours: lifetimeHours,
 		Content:       EncodeContent(content),
+		Password:      EncodeContent(password),
 		DeleteOnRead:  deleteOnRead,
 		Created:       GetCurrentTime(),
 	}

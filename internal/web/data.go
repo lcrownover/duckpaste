@@ -13,7 +13,9 @@ func NewPasteEntryFromDbItem(item db.Item) PasteEntry {
 		Id:              string(item.Id),
 		ExpirationHours: item.LifetimeHours,
 		Content:         string(item.Content),
+		Password:        string(item.Password),
 		DeleteOnRead:    item.DeleteOnRead,
+		Created:         item.Created,
 	}
 }
 
@@ -27,26 +29,30 @@ func getPasteEntry(id string) (PasteEntry, error) {
 	return NewPasteEntryFromDbItem(*pasteEntry), nil
 }
 
-func createPasteEntry(content string, lifetimeHours int, deleteOnRead bool) (PasteEntry, error) {
-	newEntry := PasteEntry{
-		Content:         content,
-		ExpirationHours: lifetimeHours,
-		DeleteOnRead:    deleteOnRead,
-	}
-
-	if newEntry.ExpirationHours == 0 {
-		newEntry.ExpirationHours = defaultLifetime
+func createPasteEntry(p PasteEntry) (PasteEntry, error) {
+	if p.ExpirationHours == 0 {
+		p.ExpirationHours = defaultLifetime
 	}
 
 	//convert
-	newDbItem := dbClient.NewItem(newEntry.Content, newEntry.ExpirationHours, newEntry.DeleteOnRead)
-	newEntry.Id = string(newDbItem.Id)
+	newDbItem := dbClient.NewItem(p.Content, p.ExpirationHours, p.Password, p.DeleteOnRead)
+	p.Id = string(newDbItem.Id)
 
 	// put it in the database
 	err := dbClient.CreateItem(newDbItem.Id, newDbItem)
 	if err != nil {
-		return newEntry, err
+		return p, err
 	}
 
-	return newEntry, nil
+	return p, nil
+}
+
+func deletePasteEntry(p PasteEntry) error {
+	// delete it
+	err := dbClient.DeleteItem(db.ItemID(p.Id))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

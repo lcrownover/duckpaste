@@ -114,6 +114,10 @@ nav {
   margin-bottom: 10px;
 }
 
+.notfound {
+	padding: 50px;
+}
+
 .pasteDisplay {
   display: flex;
   flex-direction: column;
@@ -247,6 +251,11 @@ input[type="submit"] {
   padding: 8px 8px;
   margin: 20px;
   width: 120px;
+}
+
+input[type="checkbox"] {
+  cursor: pointer;
+  zoom: 1.2;
 }
 
 a {
