@@ -114,6 +114,7 @@ func StartServer() {
 	// get listen config from env
 	wc := GetWebConfig()
 
+	gin.SetMode(gin.ReleaseMode)
 	server := gin.Default()
 	webHandler := NewWebHandler(wc, server)
 

@@ -2,6 +2,7 @@ package web
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/lcrownover/duckpaste/internal/db"
 )
@@ -21,6 +22,7 @@ func NewPasteEntryFromDbItem(item db.Item) PasteEntry {
 
 func getPasteEntry(id string) (PasteEntry, error) {
 	// get it
+	slog.Info("getting paste", "id", id, "source", "getPasteEntry")
 	pasteEntry, err := dbClient.ReadItem(db.ItemID(id))
 	if err != nil {
 		return PasteEntry{}, fmt.Errorf("paste not found")
@@ -39,6 +41,7 @@ func createPasteEntry(p PasteEntry) (PasteEntry, error) {
 	p.Id = string(newDbItem.Id)
 
 	// put it in the database
+	slog.Info("creating paste", "id", p.Id, "source", "createPasteEntry")
 	err := dbClient.CreateItem(newDbItem.Id, newDbItem)
 	if err != nil {
 		return p, err
@@ -49,6 +52,7 @@ func createPasteEntry(p PasteEntry) (PasteEntry, error) {
 
 func deletePasteEntry(p PasteEntry) error {
 	// delete it
+	slog.Info("deleting paste", "id", p.Id, "source", "deletePasteEntry")
 	err := dbClient.DeleteItem(db.ItemID(p.Id))
 	if err != nil {
 		return err

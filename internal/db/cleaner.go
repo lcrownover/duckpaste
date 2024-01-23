@@ -40,7 +40,7 @@ func StartCleaner(h *CosmosHandler, opts *CleanerOpts) {
 			}
 			itemExpirationTime := item.Created.Add(time.Duration(item.LifetimeHours) * time.Hour)
 			if time.Now().After(itemExpirationTime) {
-				slog.Debug("deleting expired item"+string(item.Id), "source", "StartCleaner")
+				slog.Info("deleting expired item", "id", string(item.Id), "source", "StartCleaner")
 				h.DeleteItem(item.Id)
 			}
 		}

@@ -216,7 +216,7 @@ func (h *CosmosHandler) CreateItem(itemID ItemID, item *Item) error {
 	if err != nil {
 		return err
 	}
-	slog.Info("Item created", "id", item.Id, "activityId", itemResponse.ActivityID, "requestCharge", itemResponse.RequestCharge)
+	slog.Info("item created", "id", item.Id, "activityId", itemResponse.ActivityID, "requestCharge", itemResponse.RequestCharge)
 
 	return nil
 }
